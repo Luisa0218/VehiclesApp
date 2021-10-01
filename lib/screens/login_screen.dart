@@ -10,8 +10,22 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: Text('Login Screen')),
+    return Scaffold(
+      body: Center(
+          child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          _showLogo(),
+        ],
+      )),
+    );
+  }
+
+  Widget _showLogo() {
+    return const Image(
+      // ignore: unnecessary_string_escapes
+      image: AssetImage('assets/Vehicles_Logos.png'),
+      width: 300,
     );
   }
 }
