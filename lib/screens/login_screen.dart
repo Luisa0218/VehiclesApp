@@ -18,7 +18,12 @@ class _LoginScreenState extends State<LoginScreen> {
   String _emailError = '';
   // ignore: prefer_final_fields
   bool _emailShowError = false;
+
   String _password = '';
+  // ignore: prefer_final_fields
+  String _passwordError = '';
+  // ignore: prefer_final_fields
+  bool _passwordShowError = false;
   // ignore: prefer_final_fields
   bool _rememberme = true;
 
@@ -80,6 +85,7 @@ class _LoginScreenState extends State<LoginScreen> {
         decoration: InputDecoration(
           hintText: 'Ingresa tu contraseña...',
           labelText: 'Contraseña',
+          errorText: _passwordShowError ? _passwordError : null,
           suffixIcon: const Icon(Icons.lock),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         ),
@@ -160,6 +166,19 @@ class _LoginScreenState extends State<LoginScreen> {
     } else {
       _emailShowError = false;
     }
+
+    if (_password.isEmpty) {
+      hasErrors = true;
+      _passwordShowError = true;
+      _passwordError = 'Debes ingresar tu contraseña.';
+    } else if (_password.length < 6) {
+      hasErrors = true;
+      _passwordShowError = true;
+      _passwordError = 'Debes ingresar una contraseña de almenos 6 carácteres.';
+    } else {
+      _passwordShowError = false;
+    }
+
     setState(() {});
     return hasErrors;
   }
