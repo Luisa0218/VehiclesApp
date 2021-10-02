@@ -26,6 +26,8 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _passwordShowError = false;
   // ignore: prefer_final_fields
   bool _rememberme = true;
+  // ignore: prefer_final_fields
+  bool _passwordShow = false;
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
           hintText: 'Ingresa tu email.....',
           labelText: 'Email',
           errorText: _emailShowError ? _emailError : null,
+          prefixIcon: const Icon(Icons.alternate_email),
           suffixIcon: const Icon(Icons.email),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         ),
@@ -81,12 +84,22 @@ class _LoginScreenState extends State<LoginScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       child: TextField(
-        obscureText: true,
+        obscureText: !_passwordShow,
         decoration: InputDecoration(
           hintText: 'Ingresa tu contraseña...',
           labelText: 'Contraseña',
           errorText: _passwordShowError ? _passwordError : null,
-          suffixIcon: const Icon(Icons.lock),
+          prefixIcon: const Icon(Icons.lock),
+          suffixIcon: IconButton(
+            icon: _passwordShow
+                ? const Icon(Icons.visibility)
+                : const Icon(Icons.visibility_off),
+            onPressed: () {
+              setState(() {
+                _passwordShow = !_passwordShow;
+              });
+            },
+          ),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         ),
         onChanged: (value) {
