@@ -1,8 +1,15 @@
 // ignore_for_file: unused_field
 
 // ignore: import_of_legacy_library_into_null_safe
-import 'package:email_validator/email_validator.dart';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+// ignore: import_of_legacy_library_into_null_safe
+import 'package:email_validator/email_validator.dart';
+import 'package:http/http.dart' as http;
+import 'package:vehicles_app/components/loader_component.dart';
+import 'package:vehicles_app/helpers/constans%20.dart';
+import 'package:vehicles_app/models/token.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -29,23 +36,32 @@ class _LoginScreenState extends State<LoginScreen> {
   // ignore: prefer_final_fields
   bool _passwordShow = false;
 
+  // ignore: prefer_final_fields
+  bool _showLoader = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-          child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      body: Stack(
         children: <Widget>[
-          _showLogo(),
-          const SizedBox(
-            height: 20,
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              _showLogo(),
+              const SizedBox(
+                height: 20,
+              ),
+              _showEmail(),
+              _showPassword(),
+              _showRememberme(),
+              _showButtons(),
+            ],
           ),
-          _showEmail(),
-          _showPassword(),
-          _showRememberme(),
-          _showButtons(),
+          _showLoader
+              ? const LoaderComponent(text: 'por favor espere...')
+              : Container(),
         ],
-      )),
+      ),
     );
   }
 
@@ -159,21 +175,64 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _login() {
+  void _login() async {
+    setState(() {
+      _passwordShow = false;
+    });
+
     if (!_validateFields()) {
       return;
     }
+
+    setState(() {
+      _showLoader = true;
+    });
+
+    Map<String, dynamic> request = {
+      'UserName': _email,
+      'password': _password,
+    };
+
+    var url = Uri.parse('${Constans.apiUrl}/api/Account/CreateToken');
+    var response = await http.post(
+      url,
+      headers: {
+        'content-type': 'application/json',
+        'accept': 'application/json',
+      },
+      body: jsonEncode(request),
+    );
+
+    setState(() {
+      _showLoader = false;
+    });
+
+    if (response.statusCode >= 400) {
+      setState(() {
+        _passwordShowError = true;
+        _passwordError = 'Email o contraseña incorrectos';
+      });
+      return;
+    }
+
+    // ignore: avoid_print
+    var body = response.body;
+    var decodeJson = jsonDecode(body);
+    var token = Token.fromJson(decodeJson);
+    // ignore: avoid_print
+    // ignore: avoid_print
+    print(token.token);
   }
 
   bool _validateFields() {
-    bool hasErrors = false;
+    bool isValid = true;
 
     if (_email.isEmpty) {
-      hasErrors = true;
+      isValid = false;
       _emailShowError = true;
       _emailError = 'Debes ingresar tu email.';
     } else if (!EmailValidator.validate(_email)) {
-      hasErrors = true;
+      isValid = false;
       _emailShowError = true;
       _emailError = 'Debes ingresar un email válido.';
     } else {
@@ -181,11 +240,11 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     if (_password.isEmpty) {
-      hasErrors = true;
+      isValid = false;
       _passwordShowError = true;
       _passwordError = 'Debes ingresar tu contraseña.';
     } else if (_password.length < 6) {
-      hasErrors = true;
+      isValid = false;
       _passwordShowError = true;
       _passwordError = 'Debes ingresar una contraseña de almenos 6 carácteres.';
     } else {
@@ -193,6 +252,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     setState(() {});
-    return hasErrors;
+    return isValid;
   }
 }
