@@ -1,15 +1,15 @@
 // ignore_for_file: unused_field
-
 // ignore: import_of_legacy_library_into_null_safe
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 // ignore: import_of_legacy_library_into_null_safe
 import 'package:email_validator/email_validator.dart';
 import 'package:http/http.dart' as http;
+
 import 'package:vehicles_app/components/loader_component.dart';
 import 'package:vehicles_app/helpers/constans%20.dart';
 import 'package:vehicles_app/models/token.dart';
+import 'package:vehicles_app/screens/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -221,7 +221,12 @@ class _LoginScreenState extends State<LoginScreen> {
     var token = Token.fromJson(decodeJson);
     // ignore: avoid_print
     // ignore: avoid_print
-    print(token.token);
+    Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+            builder: (context) => HomeScreen(
+                  token: token,
+                )));
   }
 
   bool _validateFields() {
