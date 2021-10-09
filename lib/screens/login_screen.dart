@@ -20,13 +20,13 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   // ignore: prefer_final_fields
-  String _email = '';
+  String _email = 'luis@yopmail.com';
   // ignore: prefer_final_fields
   String _emailError = '';
   // ignore: prefer_final_fields
   bool _emailShowError = false;
 
-  String _password = '';
+  String _password = '123456';
   // ignore: prefer_final_fields
   String _passwordError = '';
   // ignore: prefer_final_fields

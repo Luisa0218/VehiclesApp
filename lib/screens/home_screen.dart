@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vehicles_app/models/token.dart';
+import 'package:vehicles_app/screens/login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final Token token;
@@ -77,7 +78,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ListTile(
               leading: const Icon(Icons.logout),
               title: const Text('Cerrar Sesión'),
-              onTap: () {}),
+              onTap: () {
+                Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const LoginScreen()));
+              }),
         ],
       ),
     );
