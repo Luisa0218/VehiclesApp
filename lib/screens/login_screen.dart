@@ -26,7 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
   // ignore: prefer_final_fields
   bool _emailShowError = false;
 
-  String _password = '123456';
+  String _password = '';
   // ignore: prefer_final_fields
   String _passwordError = '';
   // ignore: prefer_final_fields
