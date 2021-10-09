@@ -125,7 +125,7 @@ class _ProceduresScreenState extends State<ProceduresScreen> {
                     children: [
                       Text(
                         e.description,
-                        style: const TextStyle(fontSize: 16),
+                        style: const TextStyle(fontSize: 20),
                       ),
                       const Icon(Icons.arrow_forward_ios),
                     ],
