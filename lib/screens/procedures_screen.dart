@@ -1,14 +1,12 @@
-// ignore_for_file: use_key_in_widget_constructors, prefer_final_fields, unused_field, avoid_print, prefer_is_empty, avoid_unnecessary_containers
-
-import 'dart:convert';
-
+// ignore_for_file: use_key_in_widget_constructors, prefer_final_fields, unused_field, avoid_print, prefer_is_empty, avoid_unnecessary_containers, unused_import, unused_local_variable
+import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:vehicles_app/components/loader_component.dart';
 
-import 'package:vehicles_app/helpers/constans%20.dart';
+import 'package:vehicles_app/components/loader_component.dart';
+import 'package:vehicles_app/helpers/api_helper.dart';
 import 'package:vehicles_app/models/procedure.dart';
+import 'package:vehicles_app/models/response.dart';
 import 'package:vehicles_app/models/token.dart';
 import 'package:vehicles_app/screens/procedure_screens.dart';
 
@@ -63,27 +61,26 @@ class _ProceduresScreenState extends State<ProceduresScreen> {
     setState(() {
       _showLoader = true;
     });
-    var url = Uri.parse('${Constans.apiUrl}/api/Procedures');
-    var response = await http.get(
-      url,
-      headers: {
-        'content-type': 'application/json',
-        'accept': 'application/json',
-        'authorization': 'bearer ${widget.token.token}',
-      },
-    );
+
+    Response response = await ApiHelper.getProcedures(widget.token.token);
+
     setState(() {
       _showLoader = false;
     });
 
-    var body = response.body;
-    var decodeJson = jsonDecode(body);
-    if (decodeJson != null) {
-      for (var item in decodeJson) {
-        _procedures.add(Procedure.fromJson(item));
-      }
+    if (!response.isSuccess) {
+      await showAlertDialog(
+          context: context,
+          title: 'Error',
+          message: response.message,
+          actions: <AlertDialogAction>[
+            const AlertDialogAction(key: null, label: 'Aceptar'),
+          ]);
+      return;
     }
-    print(_procedures);
+    setState(() {
+      _procedures = response.result;
+    });
   }
 
   Widget getContent() {
