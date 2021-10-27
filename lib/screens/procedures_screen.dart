@@ -8,7 +8,7 @@ import 'package:vehicles_app/helpers/api_helper.dart';
 import 'package:vehicles_app/models/procedure.dart';
 import 'package:vehicles_app/models/response.dart';
 import 'package:vehicles_app/models/token.dart';
-import 'package:vehicles_app/screens/procedure_screens.dart';
+import 'package:vehicles_app/screens/procedure_screen.dart';
 
 class ProceduresScreen extends StatefulWidget {
   final Token token;

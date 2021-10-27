@@ -44,18 +44,20 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Stack(
         children: <Widget>[
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              _showLogo(),
-              const SizedBox(
-                height: 20,
-              ),
-              _showEmail(),
-              _showPassword(),
-              _showRememberme(),
-              _showButtons(),
-            ],
+          SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                _showLogo(),
+                const SizedBox(
+                  height: 20,
+                ),
+                _showEmail(),
+                _showPassword(),
+                _showRememberme(),
+                _showButtons(),
+              ],
+            ),
           ),
           _showLoader
               ? const LoaderComponent(text: 'por favor espere...')

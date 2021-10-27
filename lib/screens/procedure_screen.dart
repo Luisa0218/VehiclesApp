@@ -1,8 +1,12 @@
 // ignore_for_file: non_constant_identifier_names, use_key_in_widget_constructors, prefer_final_fields, duplicate_ignore, unused_field
 
+import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:vehicles_app/components/loader_component.dart';
+import 'package:vehicles_app/helpers/api_helper.dart';
 
 import 'package:vehicles_app/models/procedure.dart';
+import 'package:vehicles_app/models/response.dart';
 import 'package:vehicles_app/models/token.dart';
 
 class ProcedureScreen extends StatefulWidget {
@@ -17,6 +21,7 @@ class ProcedureScreen extends StatefulWidget {
 
 // ignore: duplicate_ignore
 class _ProcedureScreenState extends State<ProcedureScreen> {
+  bool _showLoader = false;
   // ignore: prefer_final_fields
   String _description = '';
   // ignore: unused_field
@@ -29,7 +34,7 @@ class _ProcedureScreenState extends State<ProcedureScreen> {
   String _price = '';
   // ignore: unused_field
   String _priceError = '';
-  bool __priceShowError = false;
+  bool _priceShowError = false;
   // ignore: unused_field
   TextEditingController _priceController = TextEditingController();
 
@@ -50,11 +55,20 @@ class _ProcedureScreenState extends State<ProcedureScreen> {
             ? 'Nuevo procedimiento'
             : widget.procedure.description),
       ),
-      body: Column(
-        children: <Widget>[
-          _showDescription(),
-          _showPrice(),
-          _showButtons(),
+      body: Stack(
+        children: [
+          Column(
+            children: <Widget>[
+              _showDescription(),
+              _showPrice(),
+              _showButtons(),
+            ],
+          ),
+          _showLoader
+              ? const LoaderComponent(
+                  text: 'Por favor espere...',
+                )
+              : Container(),
         ],
       ),
     );
@@ -90,7 +104,7 @@ class _ProcedureScreenState extends State<ProcedureScreen> {
         decoration: InputDecoration(
           hintText: 'Ingresa un precio.....',
           labelText: 'Precio',
-          errorText: _descriptionShowError ? _descriptionError : null,
+          errorText: _priceShowError ? _priceError : null,
           suffixIcon: const Icon(Icons.attach_money),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         ),
@@ -116,7 +130,7 @@ class _ProcedureScreenState extends State<ProcedureScreen> {
                   return const Color(0xFF120E43);
                 }),
               ),
-              onPressed: () => {},
+              onPressed: () => _save(),
             ),
           ),
           widget.procedure.id == 0
@@ -128,18 +142,88 @@ class _ProcedureScreenState extends State<ProcedureScreen> {
               ? Container()
               : Expanded(
                   child: ElevatedButton(
-                    child: const Text('Borrar'),
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                          (Set<MaterialState> states) {
-                        return const Color(0xFFB4161B);
-                      }),
-                    ),
-                    onPressed: () {},
-                  ),
+                      child: const Text('Borrar'),
+                      style: ButtonStyle(
+                        backgroundColor:
+                            MaterialStateProperty.resolveWith<Color>(
+                                (Set<MaterialState> states) {
+                          return const Color(0xFFB4161B);
+                        }),
+                      ),
+                      onPressed: () {}),
                 ),
         ],
       ),
     );
+  }
+
+  void _save() {
+    if (!_validateFields()) {
+      return;
+    }
+    widget.procedure.id == 0 ? _addRecord() : _saveRecord();
+  }
+
+  bool _validateFields() {
+    bool isValid = true;
+
+    if (_description.isEmpty) {
+      isValid = false;
+      _descriptionShowError = true;
+      _descriptionError = 'Debes ingresar una descripción.';
+    } else {
+      _descriptionShowError = false;
+    }
+
+    if (_price.isEmpty) {
+      isValid = false;
+      _priceShowError = true;
+      _priceError = 'Debes ingresar un precio';
+    } else {
+      double price = double.parse(_price);
+      if (price <= 0) {
+        isValid = false;
+        _priceShowError = true;
+        _priceError = 'Debes ingresar un precio mayor a cero.';
+      } else {
+        _priceShowError = false;
+      }
+    }
+
+    setState(() {});
+    return isValid;
+  }
+
+  _addRecord() {}
+
+  _saveRecord() async {
+    setState(() {
+      _showLoader = true;
+    });
+
+    Map<String, dynamic> request = {
+      'description': _description,
+      'price': double.parse(_price),
+    };
+
+    Response response = await ApiHelper.put('/api/Procedures/',
+        widget.procedure.id.toString(), request, widget.token.token);
+
+    setState(() {
+      _showLoader = false;
+    });
+
+    if (!response.isSuccess) {
+      await showAlertDialog(
+          context: context,
+          title: 'Error',
+          message: response.message,
+          actions: <AlertDialogAction>[
+            const AlertDialogAction(key: null, label: 'Aceptar'),
+          ]);
+      return;
+    }
+
+    Navigator.pop(context);
   }
 }
