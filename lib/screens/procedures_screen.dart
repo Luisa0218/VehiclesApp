@@ -1,4 +1,4 @@
-// ignore_for_file: use_key_in_widget_constructors, prefer_final_fields, unused_field, avoid_print, prefer_is_empty, avoid_unnecessary_containers, unused_import, unused_local_variable
+// ignore_for_file: use_key_in_widget_constructors, prefer_final_fields, unused_field, avoid_print, prefer_is_empty, avoid_unnecessary_containers, unused_import, unused_local_variable, prefer_void_to_null
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -52,20 +52,12 @@ class _ProceduresScreenState extends State<ProceduresScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
-        onPressed: () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => ProcedureScreen(
-                        token: widget.token,
-                        procedure: Procedure(description: '', id: 0, price: 0),
-                      )));
-        },
+        onPressed: () => _goAdd(),
       ),
     );
   }
 
-  void _getProcedures() async {
+  Future<Null> _getProcedures() async {
     setState(() {
       _showLoader = true;
     });
@@ -110,54 +102,49 @@ class _ProceduresScreenState extends State<ProceduresScreen> {
   }
 
   Widget _getListView() {
-    return ListView(
-      children: _procedures.map((e) {
-        return Card(
-          child: InkWell(
-            onTap: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => ProcedureScreen(
-                            token: widget.token,
-                            procedure: e,
-                          )));
-            },
-            child: Container(
-              margin: const EdgeInsets.all(10),
-              padding: const EdgeInsets.all(5),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        e.description,
-                        style: const TextStyle(fontSize: 20),
-                      ),
-                      const Icon(Icons.arrow_forward_ios),
-                    ],
-                  ),
-                  const SizedBox(
-                    height: 5,
-                  ),
-                  Row(
-                    children: [
-                      Text(
-                        // ignore: unnecessary_string_interpolations
-                        '${NumberFormat.currency(symbol: '\$').format(e.price)}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
+    return RefreshIndicator(
+      onRefresh: _getProcedures,
+      child: ListView(
+        children: _procedures.map((e) {
+          return Card(
+            child: InkWell(
+              onTap: () => _goEdit(e),
+              child: Container(
+                margin: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(5),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          e.description,
+                          style: const TextStyle(fontSize: 20),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                        const Icon(Icons.arrow_forward_ios),
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 5,
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          // ignore: unnecessary_string_interpolations
+                          '${NumberFormat.currency(symbol: '\$').format(e.price)}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        );
-      }).toList(),
+          );
+        }).toList(),
+      ),
     );
   }
 
@@ -225,5 +212,31 @@ class _ProceduresScreenState extends State<ProceduresScreen> {
     });
 
     Navigator.of(context).pop();
+  }
+
+  void _goAdd() async {
+    String? result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ProcedureScreen(
+                  token: widget.token,
+                  procedure: Procedure(description: '', id: 0, price: 0),
+                )));
+    if (result == 'yes') {
+      _getProcedures();
+    }
+  }
+
+  void _goEdit(Procedure procedure) async {
+    String? result = await Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ProcedureScreen(
+                  token: widget.token,
+                  procedure: procedure,
+                )));
+    if (result == 'yes') {
+      _getProcedures();
+    }
   }
 }
