@@ -1,4 +1,7 @@
+// ignore_for_file: prefer_final_fields, prefer_void_to_null, duplicate_ignore, import_of_legacy_library_into_null_safe, unused_field, prefer_is_empty
+
 import 'package:adaptive_dialog/adaptive_dialog.dart';
+import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 
 import 'package:vehicles_app/components/loader_component.dart';
@@ -29,43 +32,47 @@ class _UserScreenState extends State<UserScreen> {
   TextEditingController _firstNameController = TextEditingController();
 
   String _lastName = '';
-  final String _lastNameError = '';
-  final bool _lastNameShowError = false;
-  final TextEditingController _lastNameController = TextEditingController();
+  String _lastNameError = '';
+  bool _lastNameShowError = false;
+  TextEditingController _lastNameController = TextEditingController();
 
-  DocumentType _documentType = DocumentType(id: 0, description: '');
-  final List<DocumentType> _documentTypes = [];
+  int _documentTypeId = 0;
+  String _documenTypeIdError = '';
+  bool _documenTypeIdShowError = false;
+  List<DocumentType> _documentTypes = [];
 
   String _document = '';
-  final String _documentError = '';
-  final bool _documentShowError = false;
-  final TextEditingController _documentController = TextEditingController();
+  String _documentError = '';
+  bool _documentShowError = false;
+  TextEditingController _documentController = TextEditingController();
 
   String _address = '';
-  final String _addressError = '';
-  final bool _addressShowError = false;
-  final TextEditingController _addressController = TextEditingController();
+  String _addressError = '';
+  bool _addressShowError = false;
+  TextEditingController _addressController = TextEditingController();
 
   String _email = '';
-  final String _emailError = '';
-  final bool _emailShowError = false;
-  final TextEditingController _emailController = TextEditingController();
+  String _emailError = '';
+  bool _emailShowError = false;
+  TextEditingController _emailController = TextEditingController();
 
   String _phoneNumber = '';
-  final String _phoneNumberError = '';
-  final bool _phoneNumberShowError = false;
-  final TextEditingController _phoneNumberController = TextEditingController();
+  String _phoneNumberError = '';
+  bool _phoneNumberShowError = false;
+  TextEditingController _phoneNumberController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    _getDocumentTypes();
+
     _firstName = widget.user.firstName;
     _firstNameController.text = _firstName;
 
     _lastName = widget.user.lastName;
     _lastNameController.text = _lastName;
 
-    _documentType = widget.user.documentType;
+    _documentTypeId = widget.user.documentType.id;
 
     _document = widget.user.document;
     _documentController.text = _document;
@@ -196,6 +203,57 @@ class _UserScreenState extends State<UserScreen> {
       _firstNameShowError = false;
     }
 
+    if (_lastName.isEmpty) {
+      isValid = false;
+      _lastNameShowError = true;
+      _lastNameError = 'Debes ingresar al menos un apellido.';
+    } else {
+      _lastNameShowError = false;
+    }
+
+    if (_documentTypeId == 0) {
+      isValid = false;
+      _documenTypeIdShowError = true;
+      _documenTypeIdError = 'Debes ingresar un tipo de documento.';
+    } else {
+      _documenTypeIdShowError = false;
+    }
+
+    if (_document.isEmpty) {
+      isValid = false;
+      _documentShowError = true;
+      _documentError = 'Debes ingresar el número de documento.';
+    } else {
+      _documentShowError = false;
+    }
+
+    if (_email.isEmpty) {
+      isValid = false;
+      _emailShowError = true;
+      _emailError = 'Debes ingresar un email.';
+    } else if (!EmailValidator.validate(_email)) {
+      isValid = false;
+      _emailShowError = true;
+      _emailError = 'Debes ingresar un email válido.';
+    } else {
+      _emailShowError = false;
+    }
+
+    if (_address.isEmpty) {
+      isValid = false;
+      _addressShowError = true;
+      _addressError = 'Debes ingresar una dirección.';
+    } else {
+      _addressShowError = false;
+    }
+
+    if (_phoneNumber.isEmpty) {
+      isValid = false;
+      _phoneNumberShowError = true;
+      _phoneNumberError = 'Debes ingresar un teléfono.';
+    } else {
+      _phoneNumberShowError = false;
+    }
     setState(() {});
     return isValid;
   }
@@ -207,6 +265,13 @@ class _UserScreenState extends State<UserScreen> {
 
     Map<String, dynamic> request = {
       'firstName': _firstName,
+      'lastName': _lastName,
+      'documentType': _documentTypeId,
+      'document': _document,
+      'email': _email,
+      'userName': _email,
+      'address': _address,
+      'phoneNumber': _phoneNumber,
     };
 
     Response response =
@@ -238,6 +303,13 @@ class _UserScreenState extends State<UserScreen> {
     Map<String, dynamic> request = {
       'id': widget.user.id,
       'firstName': _firstName,
+      'lastName': _lastName,
+      'documentType': _documentTypeId,
+      'document': _document,
+      'email': _email,
+      'userName': _email,
+      'address': _address,
+      'phoneNumber': _phoneNumber,
     };
 
     Response response = await ApiHelper.put(
@@ -306,7 +378,7 @@ class _UserScreenState extends State<UserScreen> {
     return Container(
       margin: const EdgeInsets.only(top: 20),
       child: widget.user.id.isEmpty
-          ? Image(
+          ? const Image(
               image: AssetImage('assets/noimage.png'),
               height: 160,
               width: 160,
@@ -344,7 +416,27 @@ class _UserScreenState extends State<UserScreen> {
   }
 
   Widget _showDocumentType() {
-    return Container();
+    return Container(
+        padding: const EdgeInsets.all(10),
+        child: _documentTypes.length == 0
+            ? const Text('Cargando tipos de documento.....')
+            : DropdownButtonFormField(
+                items: _getComboDocumentTypes(),
+                value: _documentTypeId,
+                onChanged: (option) {
+                  setState(() {
+                    _documentTypeId = option as int;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: 'Seleccione un tipo de documento...',
+                  labelText: 'Tipo documento',
+                  errorText:
+                      _documenTypeIdShowError ? _documenTypeIdError : null,
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+              ));
   }
 
   Widget _showDocument() {
@@ -424,5 +516,51 @@ class _UserScreenState extends State<UserScreen> {
         },
       ),
     );
+  }
+
+  Future<Null> _getDocumentTypes() async {
+    setState(() {
+      _showLoader = true;
+    });
+
+    Response response = await ApiHelper.getDocumentTypes(widget.token);
+
+    setState(() {
+      _showLoader = false;
+    });
+
+    if (!response.isSuccess) {
+      await showAlertDialog(
+          context: context,
+          title: 'Error',
+          message: response.message,
+          actions: <AlertDialogAction>[
+            const AlertDialogAction(key: null, label: 'Aceptar'),
+          ]);
+      return;
+    }
+
+    setState(() {
+      _documentTypes = response.result;
+    });
+  }
+
+  List<DropdownMenuItem<int>> _getComboDocumentTypes() {
+    List<DropdownMenuItem<int>> list = [];
+
+    list.add(const DropdownMenuItem(
+      child: Text('Seleccione un tipo de documento...'),
+      value: 0,
+    ));
+
+    // ignore: avoid_function_literals_in_foreach_calls
+    _documentTypes.forEach((documnentType) {
+      list.add(DropdownMenuItem(
+        child: Text(documnentType.description),
+        value: documnentType.id,
+      ));
+    });
+
+    return list;
   }
 }
