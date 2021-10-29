@@ -19,7 +19,9 @@ class Token {
       id: '',
       userName: '',
       email: '',
-      phoneNumber: '');
+      phoneNumber: '',
+      vehicles: [],
+      vehiclesCount: 0);
 
   Token({required this.token, required this.expiration, required this.user});
 
