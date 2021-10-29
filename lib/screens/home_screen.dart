@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:vehicles_app/models/token.dart';
+import 'package:vehicles_app/screens/document_types.dart';
 import 'package:vehicles_app/screens/login_screen.dart';
 import 'package:vehicles_app/screens/procedures_screen.dart';
 import 'brands_screen.dart';
@@ -91,7 +92,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ListTile(
               leading: const Icon(Icons.badge),
               title: const Text('Tipos de Documento'),
-              onTap: () {}),
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => DocumentTypesScreen(
+                              token: widget.token,
+                            )));
+              }),
           ListTile(
               leading: const Icon(Icons.toys),
               title: const Text('Tipos de Vehículos'),

@@ -154,7 +154,7 @@ class _BrandScreenState extends State<BrandScreen> {
     };
 
     Response response =
-        await ApiHelper.post('/api/Brands/', request, widget.token.token);
+        await ApiHelper.post('/api/Brands/', request, widget.token);
 
     setState(() {
       _showLoader = false;
@@ -184,8 +184,8 @@ class _BrandScreenState extends State<BrandScreen> {
       'description': _description,
     };
 
-    Response response = await ApiHelper.put('/api/Brands/',
-        widget.brand.id.toString(), request, widget.token.token);
+    Response response = await ApiHelper.put(
+        '/api/Brands/', widget.brand.id.toString(), request, widget.token);
 
     setState(() {
       _showLoader = false;
@@ -226,7 +226,7 @@ class _BrandScreenState extends State<BrandScreen> {
     });
 
     Response response = await ApiHelper.delete(
-        '/api/Brands/', widget.brand.id.toString(), widget.token.token);
+        '/api/Brands/', widget.brand.id.toString(), widget.token);
 
     setState(() {
       _showLoader = false;

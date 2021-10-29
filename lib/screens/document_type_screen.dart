@@ -1,66 +1,54 @@
-// ignore_for_file: non_constant_identifier_names, use_key_in_widget_constructors, prefer_final_fields, duplicate_ignore, unused_field
+// ignore_for_file: prefer_final_fields
 
 import 'package:adaptive_dialog/adaptive_dialog.dart';
+import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
+
 import 'package:vehicles_app/components/loader_component.dart';
 import 'package:vehicles_app/helpers/api_helper.dart';
-
-import 'package:vehicles_app/models/procedure.dart';
+import 'package:vehicles_app/models/document%20_type.dart';
 import 'package:vehicles_app/models/response.dart';
 import 'package:vehicles_app/models/token.dart';
 
-class ProcedureScreen extends StatefulWidget {
+class DocumentTypeScreen extends StatefulWidget {
   final Token token;
-  final Procedure procedure;
+  final DocumentType documentType;
 
-  const ProcedureScreen({required this.token, required this.procedure});
+  // ignore: use_key_in_widget_constructors
+  const DocumentTypeScreen({required this.token, required this.documentType});
 
   @override
-  _ProcedureScreenState createState() => _ProcedureScreenState();
+  _DocumentTypeScreenState createState() => _DocumentTypeScreenState();
 }
 
-// ignore: duplicate_ignore
-class _ProcedureScreenState extends State<ProcedureScreen> {
+class _DocumentTypeScreenState extends State<DocumentTypeScreen> {
   bool _showLoader = false;
-  // ignore: prefer_final_fields
+
   String _description = '';
-  // ignore: unused_field
   String _descriptionError = '';
   bool _descriptionShowError = false;
-  // ignore: unused_field
   TextEditingController _descriptionController = TextEditingController();
-
-  // ignore: prefer_final_fields
-  String _price = '';
-  // ignore: unused_field
-  String _priceError = '';
-  bool _priceShowError = false;
-  // ignore: unused_field
-  TextEditingController _priceController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _description = widget.procedure.description;
+    _description = widget.documentType.description;
     _descriptionController.text = _description;
-    _price = widget.procedure.price.toString();
-    _priceController.text = _price;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.procedure.id == 0
-            ? 'Nuevo procedimiento'
-            : widget.procedure.description),
+        title: Text(widget.documentType.id == 0
+            ? 'Nuevo tipo de documento'
+            : widget.documentType.description),
       ),
       body: Stack(
         children: [
           Column(
             children: <Widget>[
               _showDescription(),
-              _showPrice(),
               _showButtons(),
             ],
           ),
@@ -76,40 +64,19 @@ class _ProcedureScreenState extends State<ProcedureScreen> {
 
   Widget _showDescription() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(10),
       child: TextField(
         autofocus: true,
         controller: _descriptionController,
         decoration: InputDecoration(
-          hintText: 'Ingresa una descripcion.....',
-          labelText: 'Descripcion',
+          hintText: 'Ingresa una descripción...',
+          labelText: 'Descripción',
           errorText: _descriptionShowError ? _descriptionError : null,
           suffixIcon: const Icon(Icons.description),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         ),
         onChanged: (value) {
           _description = value;
-        },
-      ),
-    );
-  }
-
-  Widget _showPrice() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: TextField(
-        keyboardType:
-            const TextInputType.numberWithOptions(decimal: true, signed: false),
-        controller: _priceController,
-        decoration: InputDecoration(
-          hintText: 'Ingresa un precio.....',
-          labelText: 'Precio',
-          errorText: _priceShowError ? _priceError : null,
-          suffixIcon: const Icon(Icons.attach_money),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-        onChanged: (value) {
-          _price = value;
         },
       ),
     );
@@ -133,12 +100,12 @@ class _ProcedureScreenState extends State<ProcedureScreen> {
               onPressed: () => _save(),
             ),
           ),
-          widget.procedure.id == 0
+          widget.documentType.id == 0
               ? Container()
               : const SizedBox(
                   width: 20,
                 ),
-          widget.procedure.id == 0
+          widget.documentType.id == 0
               ? Container()
               : Expanded(
                   child: ElevatedButton(
@@ -161,7 +128,8 @@ class _ProcedureScreenState extends State<ProcedureScreen> {
     if (!_validateFields()) {
       return;
     }
-    widget.procedure.id == 0 ? _addRecord() : _saveRecord();
+
+    widget.documentType.id == 0 ? _addRecord() : _saveRecord();
   }
 
   bool _validateFields() {
@@ -175,21 +143,6 @@ class _ProcedureScreenState extends State<ProcedureScreen> {
       _descriptionShowError = false;
     }
 
-    if (_price.isEmpty) {
-      isValid = false;
-      _priceShowError = true;
-      _priceError = 'Debes ingresar un precio';
-    } else {
-      double price = double.parse(_price);
-      if (price <= 0) {
-        isValid = false;
-        _priceShowError = true;
-        _priceError = 'Debes ingresar un precio mayor a cero.';
-      } else {
-        _priceShowError = false;
-      }
-    }
-
     setState(() {});
     return isValid;
   }
@@ -198,13 +151,28 @@ class _ProcedureScreenState extends State<ProcedureScreen> {
     setState(() {
       _showLoader = true;
     });
+
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      setState(() {
+        _showLoader = false;
+      });
+      await showAlertDialog(
+          context: context,
+          title: 'Error',
+          message: 'Verifica que estes conectado a internet.',
+          actions: <AlertDialogAction>[
+            const AlertDialogAction(key: null, label: 'Aceptar'),
+          ]);
+      return;
+    }
+
     Map<String, dynamic> request = {
       'description': _description,
-      'price': double.parse(_price),
     };
 
     Response response =
-        await ApiHelper.post('/api/Procedures/', request, widget.token);
+        await ApiHelper.post('/api/DocumentTypes/', request, widget.token);
 
     setState(() {
       _showLoader = false;
@@ -229,14 +197,28 @@ class _ProcedureScreenState extends State<ProcedureScreen> {
       _showLoader = true;
     });
 
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      setState(() {
+        _showLoader = false;
+      });
+      await showAlertDialog(
+          context: context,
+          title: 'Error',
+          message: 'Verifica que estes conectado a internet.',
+          actions: <AlertDialogAction>[
+            const AlertDialogAction(key: null, label: 'Aceptar'),
+          ]);
+      return;
+    }
+
     Map<String, dynamic> request = {
-      'id': widget.procedure.id,
+      'id': widget.documentType.id,
       'description': _description,
-      'price': double.parse(_price),
     };
 
-    Response response = await ApiHelper.put('/api/Procedures/',
-        widget.procedure.id.toString(), request, widget.token);
+    Response response = await ApiHelper.put('/api/DocumentTypes/',
+        widget.documentType.id.toString(), request, widget.token);
 
     setState(() {
       _showLoader = false;
@@ -257,7 +239,6 @@ class _ProcedureScreenState extends State<ProcedureScreen> {
   }
 
   void _confirmDelete() async {
-    // ignore: unused_local_variable
     var response = await showAlertDialog(
         context: context,
         title: 'Confirmación',
@@ -276,8 +257,24 @@ class _ProcedureScreenState extends State<ProcedureScreen> {
     setState(() {
       _showLoader = true;
     });
+
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      setState(() {
+        _showLoader = false;
+      });
+      await showAlertDialog(
+          context: context,
+          title: 'Error',
+          message: 'Verifica que estes conectado a internet.',
+          actions: <AlertDialogAction>[
+            const AlertDialogAction(key: null, label: 'Aceptar'),
+          ]);
+      return;
+    }
+
     Response response = await ApiHelper.delete(
-        '/api/Procedures/', widget.procedure.id.toString(), widget.token);
+        '/api/DocumentTypes/', widget.documentType.id.toString(), widget.token);
 
     setState(() {
       _showLoader = false;

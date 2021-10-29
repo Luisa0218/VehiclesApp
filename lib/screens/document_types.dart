@@ -1,26 +1,27 @@
-// ignore_for_file: use_key_in_widget_constructors, prefer_final_fields, unused_field, avoid_print, prefer_is_empty, avoid_unnecessary_containers, unused_import, unused_local_variable, prefer_void_to_null
+// ignore_for_file: use_key_in_widget_constructors
+
 import 'package:adaptive_dialog/adaptive_dialog.dart';
+import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import 'package:vehicles_app/components/loader_component.dart';
 import 'package:vehicles_app/helpers/api_helper.dart';
-import 'package:vehicles_app/models/procedure.dart';
+import 'package:vehicles_app/models/document%20_type.dart';
 import 'package:vehicles_app/models/response.dart';
 import 'package:vehicles_app/models/token.dart';
-import 'package:vehicles_app/screens/procedure_screen.dart';
+import 'package:vehicles_app/screens/document_type_screen.dart';
 
-class ProceduresScreen extends StatefulWidget {
+class DocumentTypesScreen extends StatefulWidget {
   final Token token;
 
-  const ProceduresScreen({required this.token});
+  const DocumentTypesScreen({required this.token});
 
   @override
-  _ProceduresScreenState createState() => _ProceduresScreenState();
+  _DocumentTypesScreenState createState() => _DocumentTypesScreenState();
 }
 
-class _ProceduresScreenState extends State<ProceduresScreen> {
-  List<Procedure> _procedures = [];
+class _DocumentTypesScreenState extends State<DocumentTypesScreen> {
+  List<DocumentType> _documentTypes = [];
   bool _showLoader = false;
   bool _isFiltered = false;
   String _search = '';
@@ -28,14 +29,14 @@ class _ProceduresScreenState extends State<ProceduresScreen> {
   @override
   void initState() {
     super.initState();
-    _getProcedures();
+    _getDocumentTypes();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Procedimientos'),
+        title: const Text('Tipos de documento'),
         actions: <Widget>[
           _isFiltered
               ? IconButton(
@@ -44,11 +45,10 @@ class _ProceduresScreenState extends State<ProceduresScreen> {
                   onPressed: _showFilter, icon: const Icon(Icons.filter_alt))
         ],
       ),
-      // ignore: prefer_const_constructors
       body: Center(
         child: _showLoader
-            ? const LoaderComponent(text: 'por favor espere...')
-            : getContent(),
+            ? const LoaderComponent(text: 'Por favor espere...')
+            : _getContent(),
       ),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
@@ -57,12 +57,28 @@ class _ProceduresScreenState extends State<ProceduresScreen> {
     );
   }
 
-  Future<Null> _getProcedures() async {
+  // ignore: prefer_void_to_null
+  Future<Null> _getDocumentTypes() async {
     setState(() {
       _showLoader = true;
     });
 
-    Response response = await ApiHelper.getProcedures(widget.token);
+    var connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult == ConnectivityResult.none) {
+      setState(() {
+        _showLoader = false;
+      });
+      await showAlertDialog(
+          context: context,
+          title: 'Error',
+          message: 'Verifica que estes conectado a internet.',
+          actions: <AlertDialogAction>[
+            const AlertDialogAction(key: null, label: 'Aceptar'),
+          ]);
+      return;
+    }
+
+    Response response = await ApiHelper.getDocumentTypes(widget.token);
 
     setState(() {
       _showLoader = false;
@@ -78,34 +94,36 @@ class _ProceduresScreenState extends State<ProceduresScreen> {
           ]);
       return;
     }
+
     setState(() {
-      _procedures = response.result;
+      _documentTypes = response.result;
     });
   }
 
-  Widget getContent() {
-    return _procedures.length == 0 ? noContent() : _getListView();
+  Widget _getContent() {
+    // ignore: prefer_is_empty
+    return _documentTypes.length == 0 ? _noContent() : _getListView();
   }
 
-  Widget noContent() {
-    // ignore: prefer_const_constructors
+  Widget _noContent() {
     return Center(
       child: Container(
         margin: const EdgeInsets.all(20),
         child: Text(
-            _isFiltered
-                ? 'No hay procedimientos con ese criterio de busqueda.'
-                : 'No hay procedimientos registrados.',
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          _isFiltered
+              ? 'No hay tipos de documento con ese criterio de búsqueda.'
+              : 'No hay tipos de documento registrados.',
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
       ),
     );
   }
 
   Widget _getListView() {
     return RefreshIndicator(
-      onRefresh: _getProcedures,
+      onRefresh: _getDocumentTypes,
       child: ListView(
-        children: _procedures.map((e) {
+        children: _documentTypes.map((e) {
           return Card(
             child: InkWell(
               onTap: () => _goEdit(e),
@@ -119,23 +137,11 @@ class _ProceduresScreenState extends State<ProceduresScreen> {
                       children: [
                         Text(
                           e.description,
-                          style: const TextStyle(fontSize: 20),
-                        ),
-                        const Icon(Icons.arrow_forward_ios),
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 5,
-                    ),
-                    Row(
-                      children: [
-                        Text(
-                          // ignore: unnecessary_string_interpolations
-                          '${NumberFormat.currency(symbol: '\$').format(e.price)}',
                           style: const TextStyle(
-                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
                           ),
                         ),
+                        const Icon(Icons.arrow_forward_ios),
                       ],
                     ),
                   ],
@@ -156,11 +162,11 @@ class _ProceduresScreenState extends State<ProceduresScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
-            title: const Text('Filtrar Procedimientos'),
+            title: const Text('Filtrar Tipos de Documento'),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                const Text('Escriba las primeras letras del procedimiento'),
+                const Text('Escriba las primeras letras del tipo de documento'),
                 const SizedBox(
                   height: 10,
                 ),
@@ -191,7 +197,7 @@ class _ProceduresScreenState extends State<ProceduresScreen> {
     setState(() {
       _isFiltered = false;
     });
-    _getProcedures();
+    _getDocumentTypes();
   }
 
   void _filter() {
@@ -199,15 +205,17 @@ class _ProceduresScreenState extends State<ProceduresScreen> {
       return;
     }
 
-    List<Procedure> filteredList = [];
-    for (var procedure in _procedures) {
-      if (procedure.description.toLowerCase().contains(_search.toLowerCase())) {
-        filteredList.add(procedure);
+    List<DocumentType> filteredList = [];
+    for (var documentType in _documentTypes) {
+      if (documentType.description
+          .toLowerCase()
+          .contains(_search.toLowerCase())) {
+        filteredList.add(documentType);
       }
     }
 
     setState(() {
-      _procedures = filteredList;
+      _documentTypes = filteredList;
       _isFiltered = true;
     });
 
@@ -218,25 +226,25 @@ class _ProceduresScreenState extends State<ProceduresScreen> {
     String? result = await Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) => ProcedureScreen(
+            builder: (context) => DocumentTypeScreen(
                   token: widget.token,
-                  procedure: Procedure(description: '', id: 0, price: 0),
+                  documentType: DocumentType(description: '', id: 0),
                 )));
     if (result == 'yes') {
-      _getProcedures();
+      _getDocumentTypes();
     }
   }
 
-  void _goEdit(Procedure procedure) async {
+  void _goEdit(DocumentType documentType) async {
     String? result = await Navigator.push(
         context,
         MaterialPageRoute(
-            builder: (context) => ProcedureScreen(
+            builder: (context) => DocumentTypeScreen(
                   token: widget.token,
-                  procedure: procedure,
+                  documentType: documentType,
                 )));
     if (result == 'yes') {
-      _getProcedures();
+      _getDocumentTypes();
     }
   }
 }
