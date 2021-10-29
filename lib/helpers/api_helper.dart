@@ -6,6 +6,7 @@ import 'package:vehicles_app/models/document%20_type.dart';
 import 'package:vehicles_app/models/procedure.dart';
 import 'package:vehicles_app/models/response.dart';
 import 'package:vehicles_app/models/token.dart';
+import 'package:vehicles_app/models/vehicle_type.dart';
 import 'constans .dart';
 
 class ApiHelper {
@@ -86,6 +87,32 @@ class ApiHelper {
       }
     }
 
+    return Response(isSuccess: true, result: list);
+  }
+
+  static Future<Response> getVehicleTypes(Token token) async {
+    var url = Uri.parse('${Constans.apiUrl}/api/VehicleTypes');
+    var response = await http.get(
+      url,
+      headers: {
+        'content-type': 'application/json',
+        'accept': 'application/json',
+        'authorization': 'bearer ${token.token}',
+      },
+    );
+
+    var body = response.body;
+    if (response.statusCode >= 400) {
+      return Response(isSuccess: false, message: body);
+    }
+
+    List<VehicleType> list = [];
+    var decodedJson = jsonDecode(body);
+    if (decodedJson != null) {
+      for (var item in decodedJson) {
+        list.add(VehicleType.fromJson(item));
+      }
+    }
     return Response(isSuccess: true, result: list);
   }
 
