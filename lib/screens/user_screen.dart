@@ -1,4 +1,6 @@
-// ignore_for_file: prefer_final_fields, prefer_void_to_null, duplicate_ignore, import_of_legacy_library_into_null_safe, unused_field, prefer_is_empty
+// ignore_for_file: prefer_final_fields, prefer_void_to_null, duplicate_ignore, import_of_legacy_library_into_null_safe, unused_field, prefer_is_empty, non_constant_identifier_names
+
+import 'dart:io';
 
 import 'package:adaptive_dialog/adaptive_dialog.dart';
 import 'package:camera/camera.dart';
@@ -26,6 +28,8 @@ class UserScreen extends StatefulWidget {
 
 class _UserScreenState extends State<UserScreen> {
   bool _showLoader = false;
+  bool _PhotoChanged = false;
+  late XFile _image;
 
   String _firstName = '';
   String _firstNameError = '';
@@ -379,25 +383,55 @@ class _UserScreenState extends State<UserScreen> {
   Widget _showPhoto() {
     return InkWell(
       onTap: () => _takePicture(),
-      child: Container(
-        margin: const EdgeInsets.only(top: 20),
-        child: widget.user.id.isEmpty
-            ? const Image(
-                image: AssetImage('assets/noimage.png'),
-                height: 160,
-                width: 160,
-              )
-            : ClipRRect(
-                borderRadius: BorderRadius.circular(50),
-                child: FadeInImage(
-                  placeholder: const AssetImage('assets/Vehicles_Logos.png'),
-                  image: NetworkImage(widget.user.imageFullPath),
-                  width: 100,
-                  height: 80,
+      child: Stack(children: <Widget>[
+        Container(
+          margin: const EdgeInsets.only(top: 20),
+          child: widget.user.id.isEmpty && !_PhotoChanged
+              ? const Image(
+                  image: AssetImage('assets/noimage.png'),
+                  height: 160,
+                  width: 160,
                   fit: BoxFit.cover,
+                )
+              : ClipRRect(
+                  borderRadius: BorderRadius.circular(50),
+                  child: _PhotoChanged
+                      ? Image.file(
+                          File(_image.path),
+                          height: 160,
+                          width: 160,
+                          fit: BoxFit.cover,
+                        )
+                      : FadeInImage(
+                          placeholder:
+                              const AssetImage('assets/Vehicles_Logos.png'),
+                          image: NetworkImage(widget.user.imageFullPath),
+                          width: 100,
+                          height: 80,
+                          fit: BoxFit.cover,
+                        ),
+                ),
+        ),
+        Positioned(
+            bottom: 0,
+            left: 100,
+            child: InkWell(
+              onTap: () => _takePicture(),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(30),
+                child: Container(
+                  color: Colors.green[50],
+                  height: 60,
+                  width: 60,
+                  child: const Icon(
+                    Icons.photo_camera,
+                    size: 40,
+                    color: Colors.blue,
+                  ),
                 ),
               ),
-      ),
+            )),
+      ]),
     );
   }
 
@@ -573,11 +607,17 @@ class _UserScreenState extends State<UserScreen> {
     WidgetsFlutterBinding.ensureInitialized();
     final cameras = await availableCameras();
     final firstCamera = cameras.first;
-    Navigator.push(
+    Response? response = await Navigator.push(
         context,
         MaterialPageRoute(
             builder: (context) => TakePictureScreen(
                   camera: firstCamera,
                 )));
+    if (response != null) {
+      setState(() {
+        _PhotoChanged = true;
+        _image = response.result;
+      });
+    }
   }
 }
