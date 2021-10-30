@@ -1,5 +1,6 @@
 // ignore_for_file: prefer_final_fields, prefer_void_to_null, duplicate_ignore, import_of_legacy_library_into_null_safe, unused_field, prefer_is_empty, non_constant_identifier_names
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:adaptive_dialog/adaptive_dialog.dart';
@@ -269,15 +270,22 @@ class _UserScreenState extends State<UserScreen> {
       _showLoader = true;
     });
 
+    String base64image = '';
+    if (_PhotoChanged) {
+      List<int> imageBytes = await _image.readAsBytes();
+      base64image = base64Encode(imageBytes);
+    }
+
     Map<String, dynamic> request = {
       'firstName': _firstName,
       'lastName': _lastName,
-      'documentType': _documentTypeId,
+      'documentTypeId': _documentTypeId,
       'document': _document,
       'email': _email,
       'userName': _email,
       'address': _address,
       'phoneNumber': _phoneNumber,
+      'image': base64image,
     };
 
     Response response =
@@ -306,16 +314,23 @@ class _UserScreenState extends State<UserScreen> {
       _showLoader = true;
     });
 
+    String base64image = '';
+    if (_PhotoChanged) {
+      List<int> imageBytes = await _image.readAsBytes();
+      base64image = base64Encode(imageBytes);
+    }
+
     Map<String, dynamic> request = {
       'id': widget.user.id,
       'firstName': _firstName,
       'lastName': _lastName,
-      'documentType': _documentTypeId,
+      'documentTypeId': _documentTypeId,
       'document': _document,
       'email': _email,
       'userName': _email,
       'address': _address,
       'phoneNumber': _phoneNumber,
+      'image': base64image,
     };
 
     Response response = await ApiHelper.put(
@@ -501,6 +516,7 @@ class _UserScreenState extends State<UserScreen> {
     return Container(
       padding: const EdgeInsets.all(10),
       child: TextField(
+        enabled: widget.user.id.isEmpty,
         controller: _emailController,
         keyboardType: TextInputType.emailAddress,
         decoration: InputDecoration(
