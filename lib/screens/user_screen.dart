@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_final_fields, prefer_void_to_null, duplicate_ignore, import_of_legacy_library_into_null_safe, unused_field, prefer_is_empty
 
 import 'package:adaptive_dialog/adaptive_dialog.dart';
+import 'package:camera/camera.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 
@@ -10,6 +11,7 @@ import 'package:vehicles_app/models/document%20_type.dart';
 import 'package:vehicles_app/models/response.dart';
 import 'package:vehicles_app/models/token.dart';
 import 'package:vehicles_app/models/user.dart';
+import 'package:vehicles_app/screens/take_picture_screen.dart';
 
 class UserScreen extends StatefulWidget {
   final Token token;
@@ -375,24 +377,27 @@ class _UserScreenState extends State<UserScreen> {
   }
 
   Widget _showPhoto() {
-    return Container(
-      margin: const EdgeInsets.only(top: 20),
-      child: widget.user.id.isEmpty
-          ? const Image(
-              image: AssetImage('assets/noimage.png'),
-              height: 160,
-              width: 160,
-            )
-          : ClipRRect(
-              borderRadius: BorderRadius.circular(50),
-              child: FadeInImage(
-                placeholder: const AssetImage('assets/Vehicles_Logos.png'),
-                image: NetworkImage(widget.user.imageFullPath),
-                width: 100,
-                height: 80,
-                fit: BoxFit.cover,
+    return InkWell(
+      onTap: () => _takePicture(),
+      child: Container(
+        margin: const EdgeInsets.only(top: 20),
+        child: widget.user.id.isEmpty
+            ? const Image(
+                image: AssetImage('assets/noimage.png'),
+                height: 160,
+                width: 160,
+              )
+            : ClipRRect(
+                borderRadius: BorderRadius.circular(50),
+                child: FadeInImage(
+                  placeholder: const AssetImage('assets/Vehicles_Logos.png'),
+                  image: NetworkImage(widget.user.imageFullPath),
+                  width: 100,
+                  height: 80,
+                  fit: BoxFit.cover,
+                ),
               ),
-            ),
+      ),
     );
   }
 
@@ -562,5 +567,17 @@ class _UserScreenState extends State<UserScreen> {
     });
 
     return list;
+  }
+
+  void _takePicture() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    final cameras = await availableCameras();
+    final firstCamera = cameras.first;
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => TakePictureScreen(
+                  camera: firstCamera,
+                )));
   }
 }
