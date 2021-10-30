@@ -206,7 +206,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
         style: ButtonStyle(
           backgroundColor: MaterialStateProperty.resolveWith<Color>(
               (Set<MaterialState> states) {
-            return Color(0xFF120E43);
+            return const Color(0xFF120E43);
           }),
         ),
         onPressed: () => _goEdit(),
